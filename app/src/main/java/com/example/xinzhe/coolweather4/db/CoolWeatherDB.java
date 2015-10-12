@@ -18,14 +18,14 @@ import java.util.List;
  */
 public class CoolWeatherDB {
     private final static int VERSION=1;
-    private CoolWeatherDB coolWeatherDB;
+    private static CoolWeatherDB coolWeatherDB;
     private SQLiteDatabase db;
 
     private CoolWeatherDB(Context context) {
         CoolWeatherHelper coolWeatherHelper=new CoolWeatherHelper(context,"CoolWeatherDB",null,VERSION);
         db=coolWeatherHelper.getWritableDatabase();
     }
-    public synchronized CoolWeatherDB getInstancce(Context context){
+    public static synchronized CoolWeatherDB getInstance(Context context){
         if(coolWeatherDB!=null){
             coolWeatherDB=new CoolWeatherDB(context);
         }
@@ -87,7 +87,7 @@ public class CoolWeatherDB {
         values.put("city_code",city.getCityCode());
         values.put("city_name",city.getCityName());
         values.put("province_id",city.getProvinceId());
-        db.insert("City",null,values);
+        db.insert("City", null, values);
     }
     public void saveCounty(County county){
         ContentValues values=new ContentValues();
@@ -95,6 +95,42 @@ public class CoolWeatherDB {
         values.put("county_name",county.getCountyName());
         values.put("city_id",county.getCountyName());
         db.insert("County",null,values);
+    }
+    public boolean handleProvinceResponse(String response){
+        String [] pieces=response.split(",");
+        if (pieces!=null&&pieces.length>0){
+            for(String p:pieces){
+                String[] array=p.split("\\|");
+                Province province=new Province();
+                province.setProvinceCode(array[0]);
+                province.setProvinceName(array[1]);
+                saveProvince(province);
+            }return true;
+        }return false;
+    }
+    public boolean handleCityResponse(String response){
+        String [] pieces=response.split(",");
+        if (pieces!=null&&pieces.length>0){
+            for (String p:pieces){
+                String[] array=p.split("\\|");
+                City city=new City();
+                city.setCityCode(array[0]);
+                city.setCityName(array[1]);
+                saveCity(city);
+            }return true;
+        }return false;
+    }
+    public boolean handleCountyResponse(String response){
+        String [] pieces =response.split(",");
+        if (pieces!=null&&pieces.length>0){
+            for(String p:pieces){
+                String [] array=p.split("\\|");
+                County county=new County();
+                county.setCountyCode(array[0]);
+                county.setCountyName(array[1]);
+                saveCounty(county);
+            }return true;
+        }return  true;
     }
 
 }

@@ -12,11 +12,10 @@ import android.widget.Toast;
 
 import com.example.xinzhe.coolweather4.R;
 import com.example.xinzhe.coolweather4.db.CoolWeatherDB;
-import com.example.xinzhe.coolweather4.db.CoolWeatherDBHelper;
 import com.example.xinzhe.coolweather4.model.City;
 import com.example.xinzhe.coolweather4.model.County;
 import com.example.xinzhe.coolweather4.model.Province;
-import com.example.xinzhe.coolweather4.util.HttpSendRequestListener;
+import com.example.xinzhe.coolweather4.util.HttpRequestListener;
 import com.example.xinzhe.coolweather4.util.HttpUtil;
 
 import java.util.AbstractCollection;
@@ -120,10 +119,10 @@ public class ChooseAreaAcitvity extends Activity {
         }
         HttpUtil httpUtil=new HttpUtil();
 
-        httpUtil.sendHttpRequest(address, new HttpSendRequestListener() {
+        httpUtil.sendHttpRequest(address, new HttpRequestListener() {
             boolean result;
             @Override
-            public void onFinsh(String response) {
+            public void onFinish(String response) {
                 if("province".equals(type)){
                     result=db.handleProvinceResponse(response);
                     //queryProvince();//改变UI的操作要在主线程
