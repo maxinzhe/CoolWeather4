@@ -190,4 +190,4 @@ public class ChooseAreaAcitvity extends Activity {
             finish();
         }
     }
-}
+}//看看在不在
