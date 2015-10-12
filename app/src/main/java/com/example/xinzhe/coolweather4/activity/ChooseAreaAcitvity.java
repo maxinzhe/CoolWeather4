@@ -84,27 +84,37 @@ public class ChooseAreaAcitvity extends Activity {
                 dataList.add(p.getProvinceName());
             }
             arrayAdapter.notifyDataSetChanged();
-            currentLevel=LEVEL_CITY;
+            currentLevel=LEVEL_PROVINCE;
         }else{
             queryFromServer(null,"province");
         }
     }
     private void queryCities(){
-        cityList=db.loadCities(selectedProvince);
+        cityList=db.loadCities(selectedProvince.getId());
         if (cityList!=null&&cityList.size()>0){
             dataList.clear();
             for(City c:cityList){
                 dataList.add(c.getCityName());
             }
             arrayAdapter.notifyDataSetChanged();
-            currentLevel=LEVEL_COUNTY;
+            currentLevel=LEVEL_CITY;
         }else{
             queryFromServer(selectedProvince.getProvinceCode(),"city");
         }
 
     }
     private void queryCounties(){
-
+        countyList=db.loadCounty(selectedCity.getId());
+        if(cityList!=null&&cityList.size()>0){
+            dataList.clear();
+            for (County c:countyList){
+                dataList.add(c.getCountyName());
+            }
+            arrayAdapter.notifyDataSetChanged();
+            currentLevel=LEVEL_COUNTY;
+        }else{
+            queryFromServer(selectedCity.getCityCode(),"city");
+        }
     }
     private void queryFromServer(String code, final String type){
         startProgressDialog();

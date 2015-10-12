@@ -4,6 +4,15 @@ package com.example.xinzhe.coolweather4.model;
  * Created by Xinzhe on 2015/10/12.
  */
 public class Province {
+    private int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
     private String  provinceCode;
     private String provinceName;
 
