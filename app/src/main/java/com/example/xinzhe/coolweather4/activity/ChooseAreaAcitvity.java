@@ -175,7 +175,7 @@ public class ChooseAreaAcitvity extends Activity {
     }
     private void closeProgressDialog(){
         if(progressDialog!=null){
-            progressDialog.dismiss();
+            progressDialog.dismiss();//
         }
     }
 
