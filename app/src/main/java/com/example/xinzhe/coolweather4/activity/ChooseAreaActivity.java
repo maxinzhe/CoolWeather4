@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.xinzhe.coolweather4.R;
@@ -26,7 +27,7 @@ import java.util.List;
 /**
  * Created by Xinzhe on 2015/10/11.
  */
-public class ChooseAreaAcitvity extends Activity {
+public class ChooseAreaActivity extends Activity {
 
     private ProgressDialog progressDialog;
     private   int currentLevel=0;
@@ -34,10 +35,10 @@ public class ChooseAreaAcitvity extends Activity {
     private final static int LEVEL_CITY=1;
     private final static int LEVEL_COUNTY=2;
 
-    private CoolWeatherDB db=CoolWeatherDB.getInstance(this);
-    private List<Province> provinceList=new ArrayList<Province>();
-    private List<City> cityList=new ArrayList<City>();
-    private List<County> countyList =new ArrayList<County>();
+    private CoolWeatherDB db;//？？
+    private List<Province> provinceList;
+    private List<City> cityList;
+    private List<County> countyList;
 
     private Province selectedProvince=new Province();
     private City selectedCity=new City();
@@ -45,15 +46,21 @@ public class ChooseAreaAcitvity extends Activity {
 
     private List<String> dataList=new ArrayList<String>();
     private ArrayAdapter<String> arrayAdapter;
+
+    TextView textView;
+    ListView listView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.choose_area);
 
-       // db= CoolWeatherDB.getInstance(this);
+        // db= CoolWeatherDB.getInstance(this);
+        db=CoolWeatherDB.getInstance(this);
 
-        arrayAdapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1);
-        ListView listView=(ListView)findViewById(R.id.listView);
+        textView=(TextView)findViewById(R.id.textView);
+
+        arrayAdapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,dataList);//!!!
+        listView=(ListView)findViewById(R.id.listView);
         listView.setAdapter(arrayAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -84,9 +91,11 @@ public class ChooseAreaAcitvity extends Activity {
                 dataList.add(p.getProvinceName());
             }
             arrayAdapter.notifyDataSetChanged();
+            listView.setSelection(0);
+            textView.setText("请选择省份");
             currentLevel=LEVEL_PROVINCE;
         }else{
-            queryFromServer(null,"province");
+            queryFromServer(null, "province");
         }
     }
     private void queryCities(){
@@ -97,23 +106,27 @@ public class ChooseAreaAcitvity extends Activity {
                 dataList.add(c.getCityName());
             }
             arrayAdapter.notifyDataSetChanged();
+            listView.setSelection(0);
+            textView.setText("请选择城市");
             currentLevel=LEVEL_CITY;
         }else{
-            queryFromServer(selectedProvince.getProvinceCode(),"city");
+            queryFromServer(selectedProvince.getProvinceCode(), "city");
         }
 
     }
     private void queryCounties(){
         countyList=db.loadCounty(selectedCity.getId());
-        if(cityList!=null&&cityList.size()>0){
+        if(countyList!=null&&countyList.size()>0){
             dataList.clear();
             for (County c:countyList){
                 dataList.add(c.getCountyName());
             }
             arrayAdapter.notifyDataSetChanged();
+            listView.setSelection(0);
+            textView.setText("请选择区县");
             currentLevel=LEVEL_COUNTY;
         }else{
-            queryFromServer(selectedCity.getCityCode(),"city");
+            queryFromServer(selectedCity.getCityCode(),"county");
         }
     }
     private void queryFromServer(String code, final String type){
@@ -121,9 +134,9 @@ public class ChooseAreaAcitvity extends Activity {
         String address;
 
         if(TextUtils.isEmpty(code)){//是空的证明是查询province
-            address="www.weather.com.cn/data/list3/city.xml";
+            address="http://www.weather.com.cn/data/list3/city.xml";
         }else{//是省或者市
-            address="www.weather.com.cn/data/list3/city" +
+            address="http://www.weather.com.cn/data/list3/city" +
                     code+
                     ".xml";
         }
@@ -131,29 +144,31 @@ public class ChooseAreaAcitvity extends Activity {
 
         httpUtil.sendHttpRequest(address, new HttpRequestListener() {
             boolean result;
+
             @Override
             public void onFinish(String response) {
-                if("province".equals(type)){
-                    result=db.handleProvinceResponse(response);
+                if ("province".equals(type)) {
+                    result = db.handleProvinceResponse(response);
                     //queryProvince();//改变UI的操作要在主线程
-                }else if("city".equals(type)){
-                    result=db.handleCityResponse(response);
+                } else if ("city".equals(type)) {
+                    result = db.handleCityResponse(response,selectedProvince.getId());
                     //queryCities();
-                }else if("county".equals(type)){
-                    result=db.handleCityResponse(response);
+                } else if ("county".equals(type)) {
+                    result = db.handleCountyResponse(response,selectedCity.getId());
                     //queryCounties();
                 }
-                if(result){
+                if (result) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if("province".equals(type)){
-                               //result=db.handleProvinceResponse(response);
+                            closeProgressDialog();
+                            if ("province".equals(type)) {
+                                //result=db.handleProvinceResponse(response);
                                 queryProvince();//改变UI的操作要在主线程
-                            }else if("city".equals(type)){
+                            } else if ("city".equals(type)) {
                                 // result=db.handleCityResponse(response);
                                 queryCities();
-                            }else if("county".equals(type)){
+                            } else if ("county".equals(type)) {
                                 // result=db.handleCityResponse(response);
                                 queryCounties();
                             }
@@ -168,7 +183,7 @@ public class ChooseAreaAcitvity extends Activity {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(ChooseAreaAcitvity.this,"加载失败",Toast.LENGTH_SHORT);
+                        Toast.makeText(ChooseAreaActivity.this, "加载失败", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -177,10 +192,12 @@ public class ChooseAreaAcitvity extends Activity {
 
     }
     private void startProgressDialog(){
-        if(progressDialog==null)
-            progressDialog=new ProgressDialog(this);
+        if(progressDialog==null) {
+            progressDialog = new ProgressDialog(this);
             progressDialog.setMessage("正在加载");
             progressDialog.setCanceledOnTouchOutside(false);
+        }
+        progressDialog.show();
     }
     private void closeProgressDialog(){
         if(progressDialog!=null){

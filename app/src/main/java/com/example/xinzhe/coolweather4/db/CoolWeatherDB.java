@@ -12,6 +12,7 @@ import com.example.xinzhe.coolweather4.model.Province;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.CheckedInputStream;
 
 /**
  * Created by Xinzhe on 2015/10/12.
@@ -26,7 +27,7 @@ public class CoolWeatherDB {
         db=coolWeatherHelper.getWritableDatabase();
     }
     public static synchronized CoolWeatherDB getInstance(Context context){
-        if(coolWeatherDB!=null){
+        if(coolWeatherDB==null){
             coolWeatherDB=new CoolWeatherDB(context);
         }
         return coolWeatherDB;
@@ -96,7 +97,7 @@ public class CoolWeatherDB {
         ContentValues values=new ContentValues();
         values.put("county_code",county.getCountyCode());
         values.put("county_name",county.getCountyName());
-        values.put("city_id",county.getCountyName());
+        values.put("city_id",county.getCityId());
         db.insert("County",null,values);
     }
     public boolean handleProvinceResponse(String response){
@@ -111,7 +112,7 @@ public class CoolWeatherDB {
             }return true;
         }return false;
     }
-    public boolean handleCityResponse(String response){
+    public boolean handleCityResponse(String response,int provinceId){
         String [] pieces=response.split(",");
         if (pieces!=null&&pieces.length>0){
             for (String p:pieces){
@@ -119,11 +120,13 @@ public class CoolWeatherDB {
                 City city=new City();
                 city.setCityCode(array[0]);
                 city.setCityName(array[1]);
+                ///!!
+                city.setProvinceId(provinceId);
                 saveCity(city);
             }return true;
         }return false;
     }
-    public boolean handleCountyResponse(String response){
+    public boolean handleCountyResponse(String response,int cityId){
         String [] pieces =response.split(",");
         if (pieces!=null&&pieces.length>0){
             for(String p:pieces){
@@ -131,6 +134,7 @@ public class CoolWeatherDB {
                 County county=new County();
                 county.setCountyCode(array[0]);
                 county.setCountyName(array[1]);
+                county.setCityId(cityId);
                 saveCounty(county);
             }return true;
         }return  true;
